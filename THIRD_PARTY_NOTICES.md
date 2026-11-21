@@ -4,6 +4,7 @@
 
 - Windows 桌面窗口使用 Microsoft WebView2 SDK，固定版本与下载校验见 `dependencies.json`。构建脚本从 [Microsoft 的 NuGet 包](https://www.nuget.org/packages/Microsoft.Web.WebView2/1.0.4258.31)恢复组件。便携包随组件保留 `data/desktop-shell-bin/WebView2-LICENSE.txt`，使用及再分发遵循该许可。
 - Windows 用户需要独立安装 [Microsoft WebView2 Evergreen Runtime](https://developer.microsoft.com/microsoft-edge/webview2/)。SDK DLL 与 Runtime 不同；Runtime 不放入本发布包。官方部署说明见 [Microsoft Learn](https://learn.microsoft.com/microsoft-edge/webview2/concepts/distribution)。
+- 3D 导演台使用本地随附的 [Three.js](https://threejs.org/) r160（`web/vendor/three.module.js`），遵循其 MIT 许可证，未修改源码。该文件仅在本机加载，不请求 CDN。
 - Python、ComfyUI、自定义节点、FFmpeg 及模型权重由用户自行安装，各自遵循其许可证与使用条款。映流不重新许可这些外部项目。
 - AI API 由用户选择并自行提供凭据，请遵循对应服务条款。是否支持图片输入取决于所选服务和模型。
 

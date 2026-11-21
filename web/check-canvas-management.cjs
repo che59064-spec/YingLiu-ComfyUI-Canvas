@@ -15,7 +15,7 @@ function element(selector){
   classList:{add(...names){names.forEach(name=>classes.add(name));},remove(...names){names.forEach(name=>classes.delete(name));},contains:name=>classes.has(name),toggle(name,force){const active=force??!classes.has(name);active?classes.add(name):classes.delete(name);return active;}},
   setAttribute(name,value){this[name]=value;},removeAttribute(name){delete this[name];},
   addEventListener(name,handler){listeners[name]=handler;},querySelector:element,querySelectorAll:selectAll,
-  getBoundingClientRect(){return{left:this.left||100,top:50,bottom:84,width:120,height:34};},
+  getBoundingClientRect(){const left=this.left??100,top=this.top??50,width=this.width??120,height=this.height??34;return{left,top,right:left+width,bottom:top+height,width,height};},
   closest(selector){if(selector==='[data-canvas-id]'&&this.dataset.canvasId)return this;if(selector==='#canvas-tabs'&&this.dataset.canvasId)return element('#canvas-tabs');return null;},
   focus(){document.activeElement=this;},blur(){if(document.activeElement===this)document.activeElement=null;},select(){this.focus();},scrollIntoView(){this.scrolled=true;},
   scrollBy(options){this.lastScroll=options;this.scrollLeft=Math.max(0,Math.min(this.scrollWidth-this.clientWidth,this.scrollLeft+options.left));listeners.scroll?.();},
@@ -76,10 +76,14 @@ async function checks(){
  const actions=element('#canvas-actions'),menu=element('#canvas-tab-menu');menu.hidden=true;
  actions.click();assert.equal(menu.hidden,false,'canvas management opens in browsers that implement popovers');assert.equal(actions['aria-expanded'],'true');assert.ok(menu.style.left&&menu.style.top,'menu is positioned beside the button');
  actions.click();assert.equal(menu.hidden,true);assert.equal(actions['aria-expanded'],'false');
- const a=renderedTabs.find(tab=>tab.dataset.canvasId==='a'),b=renderedTabs.find(tab=>tab.dataset.canvasId==='b');
+ const a=renderedTabs.find(tab=>tab.dataset.canvasId==='a'),b=renderedTabs.find(tab=>tab.dataset.canvasId==='b'),cTab=renderedTabs.find(tab=>tab.dataset.canvasId==='c');tabs.top=50;tabs.left=80;tabs.width=600;tabs.height=34;a.left=100;a.width=100;b.left=220;b.width=100;cTab.left=340;cTab.width=100;
  tabs.listeners.contextmenu({target:b,clientX:120,clientY:90,preventDefault(){}});element('[data-canvas-rename]').click();assert.equal(element('#canvas-rename-dialog').open,true);assert.equal(element('#canvas-rename-input').value,'画布乙');element('#canvas-rename-input').value='标签改名';await element('#canvas-rename-form').onsubmit({preventDefault(){}});assert.equal(docs.b.name,'标签改名');assert.equal(element('#canvas-rename-dialog').open,false);
- const transfer={setData(){},effectAllowed:'',dropEffect:''};tabs.listeners.dragstart({target:a,dataTransfer:transfer,preventDefault(){}});tabs.listeners.dragover({target:b,dataTransfer:transfer,clientX:250,preventDefault(){}});tabs.listeners.drop({target:b,preventDefault(){}});await new Promise(setImmediate);assert.deepEqual(order,['b','a','c']);assert.ok(calls.some(call=>call.path==='/api/canvases/order'));
+ tabs.listeners.pointerdown({button:0,pointerType:'mouse',pointerId:7,clientX:110,clientY:70,target:a,preventDefault(){}});events.pointermove({pointerId:7,clientX:300,clientY:70,preventDefault(){}});events.pointerup({pointerId:7,clientX:300,clientY:70});await new Promise(setImmediate);assert.deepEqual(order,['b','a','c']);assert.ok(calls.some(call=>call.path==='/api/canvases/order'));assert.deepEqual(copy(c.state.canvases.map(item=>item.id)),['b','a','c']);
+ tabs.listeners.pointerdown({button:0,pointerType:'mouse',pointerId:8,clientX:110,clientY:70,target:a,preventDefault(){}});events.pointermove({pointerId:8,clientX:110,clientY:300,preventDefault(){}});events.pointercancel({pointerId:8});await new Promise(setImmediate);assert.deepEqual(order,['b','a','c'],'dragging outside the row keeps the order');
+ const idle=events.pointermove;idle({pointerId:99,clientX:300,clientY:70,preventDefault(){}});assert.equal(tabs.classList.contains('is-sorting'),false,'no drag is left running');
+ const callCount=calls.length;tabs.listeners.click({target:b});await new Promise(setImmediate);assert.equal(calls.length,callCount,'a click right after a drag must not switch canvases');
+ setup();const first=renderedTabs.find(tab=>tab.dataset.canvasId==='a');tabs.listeners.keydown({key:'ArrowRight',ctrlKey:true,shiftKey:true,target:first,preventDefault(){}});await new Promise(setImmediate);assert.deepEqual(order,['b','a','c']);assert.deepEqual(copy(c.state.canvases.map(item=>item.id)),['b','a','c']);assert.ok(calls.some(call=>call.path==='/api/canvases/order'),'keyboard reorder persists the same order');
  assert.equal(calls.some(call=>call.path.includes('/comfy/')),false,'canvas management never submits or interrupts generation');
- console.log('Canvas management passed: arrow overflow without scrollbars, persistent drag order, rename after pending saves, safe delete and task protection.');
+ console.log('Canvas management passed: arrow overflow without scrollbars, persistent drag and keyboard order, click suppression after drag, rename after pending saves, safe delete and task protection.');
 }
 checks().catch(error=>{console.error(error);process.exitCode=1;});

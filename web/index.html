@@ -7,7 +7,7 @@
   <title>映流</title>
   <link rel="icon" type="image/svg+xml" href="/brand/app-icon.svg?v=1.7.5">
   <link rel="stylesheet" href="/style.css?v=1.7.5">
-  <link rel="stylesheet" href="/layout.css?v=1.7.5">
+  <link rel="stylesheet" href="/layout.css?v=1.7.7">
   <link rel="stylesheet" href="/skins.css?v=1.7.5">
   <link rel="stylesheet" href="/window-controls.css?v=1.7.5">
   <script src="/appearance.js?v=1.7.5" defer></script>
@@ -16,8 +16,12 @@
   <link rel="stylesheet" href="/settings.css?v=1.7.5">
   <script src="/lossless-json.js?v=1.7.5" defer></script>
   <link rel="stylesheet" href="/startup.css?v=1.7.5">
+  <link rel="stylesheet" href="/refs.css?v=1.7.5">
+  <link rel="stylesheet" href="/stage.css?v=1.9.1">
   <script src="/startup.js?v=1.7.5" defer></script>
-  <script src="/app.js?v=1.7.5" defer></script>
+  <script src="/refs.js?v=1.7.5" defer></script>
+  <script src="/stage.js?v=1.9.1" defer></script>
+  <script src="/app.js?v=1.9.0" defer></script>
   <script src="/settings.js?v=1.7.5" defer></script>
 </head>
 <body>
@@ -56,6 +60,18 @@
     <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1-3.7c-.7-.4-.4-1.5.4-1.5H17a4 4 0 0 0 4-4A9 9 0 0 0 12 3Z"/><circle cx="7.5" cy="10" r=".8"/><circle cx="11" cy="7" r=".8"/><circle cx="15.5" cy="8" r=".8"/></symbol>
     <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 11a9 9 0 1 1 2.5 7M3 4v7h7M12 7v5l3 2"/></symbol>
     <symbol id="i-arrange" viewBox="0 0 24 24"><rect x="3" y="4" width="6" height="6" rx="1.5"/><rect x="15" y="4" width="6" height="6" rx="1.5"/><rect x="15" y="15" width="6" height="6" rx="1.5"/><path d="M9 7h6M9 7h3v11h3"/></symbol>
+    <symbol id="i-ref" viewBox="0 0 24 24"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16"/><circle cx="12" cy="10" r="2.1"/><path d="M8.4 17c.6-1.9 2-2.9 3.6-2.9s3 .9 3.6 2.9"/></symbol>
+    <symbol id="i-stage" viewBox="0 0 24 24"><path d="M3 20h18M5.5 20 10 12h4l4.5 8"/><circle cx="12" cy="5.8" r="2.2"/><path d="M12 8v4M8.8 10.2 12 11.6l3.2-1.4M9.8 21.5 12 17l2.2 4.5"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><rect x="2.5" y="6" width="13" height="12" rx="3"/><path d="m15.5 10.5 6-3v9l-6-3z"/></symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24"><path d="m16 5 5 5-5 5M21 10H10a6 6 0 0 0 0 12" transform="translate(0 -2)"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5c1.8 0 3.4.6 4.8 1.4M21.5 12S18 18.5 12 18.5c-1.8 0-3.4-.6-4.8-1.4M4 4l16 16"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-unlock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 7.7-1.4"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M12 4v16"/></symbol>
+    <symbol id="i-actor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.4"/><path d="M12 7.4v7M6.8 9.8 12 11.8l5.2-2M9 21l3-6.6L15 21"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></symbol>
+    <symbol id="i-prop" viewBox="0 0 24 24"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></symbol>
   </defs></svg>
   <header class="topbar">
     <div class="brand"><span class="brand-mark" aria-hidden="true"><img src="/brand/app-icon.svg?v=1.7.5" alt="" width="32" height="32"></span><span>映流</span><span class="brand-divider"></span><input id="project-name" class="project-name" aria-label="画布名称" title="修改当前画布名称" maxlength="80" value="我的创作"></div>
@@ -74,6 +90,8 @@
   <main class="workspace">
     <nav class="toolrail" aria-label="创作工具">
       <button id="library-toggle" class="rail-button" title="工作流库" aria-label="工作流库" aria-expanded="false"><svg><use href="#i-library"/></svg><span>工作流</span></button>
+      <button id="refs-toggle" class="rail-button" title="参考图库" aria-label="参考图库" aria-expanded="false" aria-controls="refs"><svg><use href="#i-ref"/></svg><span>参考</span></button>
+      <button id="stage-quick" class="rail-button rail-stage" title="3D 导演台 · 摆人、取景、截图" aria-label="打开 3D 导演台"><svg><use href="#i-stage"/></svg><span>导演台</span></button>
       <span class="rail-separator"></span>
       <button class="rail-button" data-quick="image" title="生成图片"><svg><use href="#i-image"/></svg><span>生图片</span></button>
       <button class="rail-button" data-quick="edit" title="编辑图片"><svg><use href="#i-edit"/></svg><span>改图片</span></button>
@@ -92,13 +110,22 @@
       <div id="workflow-list" class="workflow-list"><div class="list-loading">正在读取本地工作流…</div></div>
       <div class="library-foot"><span class="local-indicator"></span><div><strong>本机优先</strong><span>使用你自己的 ComfyUI 工作流</span></div></div>
     </aside>
+    <aside id="refs" class="library refs-panel hidden" aria-label="参考图库">
+      <div class="panel-title"><h1>参考图库</h1><span id="refs-count" class="count">—</span><button id="refs-close" class="icon-button small" aria-label="收起参考图库"><svg><use href="#i-close"/></svg></button></div>
+      <p class="panel-description">先挑姿态定骨架，再挑衣装定样子。</p>
+      <label class="search"><svg><use href="#i-search"/></svg><input id="refs-search" type="search" placeholder="搜索姿态、服装或发型" aria-label="搜索参考图"></label>
+      <div id="refs-kinds" class="category-tabs refs-kinds" role="tablist" aria-label="参考类型"><button type="button" class="active" data-ref-kind="pose" aria-pressed="true">姿势</button><button type="button" data-ref-kind="costume" aria-pressed="false">服装</button><button type="button" data-ref-kind="face" aria-pressed="false">人像</button></div>
+      <div id="refs-filters" class="category-tabs refs-filters" aria-label="参考分类"></div>
+      <div id="refs-list" class="refs-list"><div class="list-loading">正在读取参考图…</div></div>
+      <div class="library-foot"><span class="local-indicator"></span><div><strong>本机参考</strong><span>拖到画布即可当参考素材</span></div></div>
+    </aside>
     <section id="canvas-area" class="canvas-area" aria-label="无限创作画布">
       <div id="canvas-switcher" class="canvas-switcher" aria-label="切换画布" aria-busy="true"><button id="canvas-scroll-left" class="icon-button canvas-scroll" type="button" title="查看左侧画布" aria-label="查看左侧画布" hidden disabled><svg viewBox="0 0 24 24"><path d="m14 6-6 6 6 6"/></svg></button><div id="canvas-tabs" class="canvas-tabs" role="tablist" aria-label="我的画布"></div><button id="canvas-scroll-right" class="icon-button canvas-scroll" type="button" title="查看右侧画布" aria-label="查看右侧画布" hidden disabled><svg viewBox="0 0 24 24"><path d="m10 6 6 6-6 6"/></svg></button><button id="canvas-actions" class="icon-button" type="button" title="画布管理" aria-label="画布管理" aria-haspopup="menu" aria-expanded="false" disabled><svg><use href="#i-more"/></svg></button><button id="new-canvas" class="icon-button" type="button" title="新建画布" aria-label="新建画布" disabled><svg><use href="#i-plus"/></svg></button></div>
       <div id="simple-view" class="simple-view">
         <div class="canvas-top"><span id="card-count" class="visually-hidden">0 张卡片</span><div class="canvas-top-actions"><button id="undo-arrange" class="icon-button" title="撤销整理" aria-label="撤销整理" hidden><svg><use href="#i-undo"/></svg></button><button id="arrange-canvas" class="small-button" title="按连线整理节点"><svg><use href="#i-arrange"/></svg><span>整理画布</span></button><button id="new-workflow" class="small-button"><svg><use href="#i-plus"/></svg><span>添加节点</span></button><button id="right-toggle" class="icon-button" title="展开素材与作品" aria-label="展开素材与作品" aria-expanded="false" aria-controls="right-panel"><svg><use href="#i-folder"/></svg></button></div></div>
         <div id="viewport" class="viewport" tabindex="0" aria-label="画布，可拖动画布与卡片，滚轮缩放">
           <div id="canvas-world" class="canvas-world"><svg id="connections" class="connections" aria-label="素材连线"></svg><div id="cards"></div></div>
-          <div id="empty-hint" class="empty-hint"><svg><use href="#i-plus"/></svg><strong>从一个想法开始</strong><p>导入 ComfyUI 工作流，或把图片、视频拖到这里</p></div>
+          <div id="empty-hint" class="empty-hint"><svg><use href="#i-plus"/></svg><strong>从一个想法开始</strong><p>导入 ComfyUI 工作流、拖入图片视频，或双击空白打开 3D 导演台</p></div>
           <div id="drop-hint" class="drop-hint">松开，添加到创作空间</div>
         </div>
         <div class="canvas-bottom"><span id="canvas-hint" class="canvas-hint">拖动卡片编排创作 · 从圆点拖出连线</span><div class="zoom-controls"><button id="zoom-out" aria-label="缩小">−</button><button id="zoom-value" title="还原到100%">100%</button><button id="zoom-in" aria-label="放大">+</button><span></span><button id="fit-view" title="显示所有卡片" aria-label="显示所有卡片"><svg><use href="#i-focus"/></svg></button></div></div>
@@ -122,9 +149,10 @@
     <button role="menuitem" data-create-node="video"><svg><use href="#i-video"/></svg>生成视频</button>
     <button role="menuitem" data-create-node="motion"><svg><use href="#i-motion"/></svg>跟随动作</button>
     <button role="menuitem" data-create-node="join"><svg><use href="#i-link"/></svg>视频拼接</button>
+    <button role="menuitem" data-create-node="stage"><svg><use href="#i-stage"/></svg>3D 导演台</button>
     <button role="menuitem" data-create-node="media"><svg><use href="#i-upload"/></svg>图片或视频</button>
   </div>
-  <dialog id="help-dialog"><form method="dialog"><button class="icon-button dialog-close" aria-label="关闭"><svg><use href="#i-close"/></svg></button><h2>几步，开始创作</h2><ol><li>双击画布空白处创建节点，或从工作流库添加。</li><li>写下描述，按需上传参考图片或动作视频。</li><li>从素材卡右侧圆点，连到工作流卡左侧圆点。</li><li>点击“开始生成”，作品完成后会出现在画布和右侧素材栏，可保留旧结果再次生成。</li></ol><p>素材直接拖进画布，画布媒体拖回右侧即可收纳。视频连到“视频拼接”节点，按连接顺序拼接；点击连线可断开关系。工作流原始节点保存在卡片中，专业模式可以继续调整。图片、视频生成使用你连接的 ComfyUI。先在“设置”中配置 AI 接口；提示词优化按你的选择发送文字，以及参考图片和视频抽帧。导入仅保留工作流，模型、扩展节点与参考素材需在本机准备。</p><div class="help-keys"><span><kbd>Space</kbd> 平移画布</span><span><kbd>Delete</kbd> 移除卡片</span><span><kbd>Ctrl S</kbd> 保存</span></div><button class="primary-button">开始创作</button></form></dialog>
+  <dialog id="help-dialog"><form method="dialog"><button class="icon-button dialog-close" aria-label="关闭"><svg><use href="#i-close"/></svg></button><h2>几步，开始创作</h2><ol><li>双击画布空白处创建节点，或从工作流库添加。</li><li>需要构图时选“3D 导演台”：摆角色、调机位，截图会变成画布上的图片卡。</li><li>写下描述，按需上传参考图片或动作视频。</li><li>从素材卡右侧圆点，连到工作流卡左侧圆点。</li><li>点击“开始生成”，作品完成后会出现在画布和右侧素材栏，可保留旧结果再次生成。</li></ol><p>素材直接拖进画布，画布媒体拖回右侧即可收纳。视频连到“视频拼接”节点，按连接顺序拼接；点击连线可断开关系。工作流原始节点保存在卡片中，专业模式可以继续调整。图片、视频生成使用你连接的 ComfyUI。先在“设置”中配置 AI 接口；提示词优化按你的选择发送文字，以及参考图片和视频抽帧。导入仅保留工作流，模型、扩展节点与参考素材需在本机准备。</p><div class="help-keys"><span><kbd>Space</kbd> 平移画布</span><span><kbd>Delete</kbd> 移除卡片</span><span><kbd>Ctrl S</kbd> 保存</span></div><button class="primary-button">开始创作</button></form></dialog>
   <dialog id="connection-dialog"><form method="dialog"><button class="icon-button dialog-close" aria-label="关闭"><svg><use href="#i-close"/></svg></button><h2>本地生成引擎</h2><p id="connection-detail">正在检测 ComfyUI…</p><label class="field"><span>ComfyUI 地址</span><input id="engine-url" value="http://127.0.0.1:8188" type="url" required></label><p class="field-help">使用自己的模型和节点。普通工作流需要同步桥；API 工作流可直接提交。</p><div class="dialog-actions"><button id="engine-settings-link" type="button" class="secondary-button">引擎设置</button><button id="reconnect-engine" type="button" class="primary-button">重新连接</button><button class="secondary-button">关闭</button></div></form></dialog>
   <dialog id="prompt-dialog" class="prompt-dialog" aria-labelledby="prompt-dialog-title">
     <button id="prompt-close" type="button" class="icon-button dialog-close" aria-label="关闭提示词优化"><svg><use href="#i-close"/></svg></button>
@@ -164,6 +192,118 @@
     </section>
     <p id="settings-status" class="field-help" role="status" aria-live="polite"></p>
   </dialog>
+  <section id="stage-view" class="stage-view" aria-label="3D 导演台" hidden>
+    <header class="stage-topbar">
+      <div class="stage-brand">
+        <span class="stage-brand-mark"><svg><use href="#i-stage"/></svg></span>
+        <div><strong id="stage-title">3D 导演台</strong><span id="stage-badge">自由视角 · 16:9</span></div>
+      </div>
+      <div class="stage-view-switch" role="group" aria-label="视角切换">
+        <button type="button" data-stage-view="free" class="active" aria-pressed="true"><svg><use href="#i-focus"/></svg><span>自由视角</span></button>
+        <button type="button" data-stage-view="camera" aria-pressed="false"><svg><use href="#i-camera"/></svg><span>机位视角</span></button>
+      </div>
+      <select id="stage-camera-select" class="stage-select" aria-label="当前机位" hidden></select>
+      <div class="stage-top-actions">
+        <button type="button" class="stage-link stage-motion-open" data-stage-action="motion-open" aria-controls="stage-motion" aria-expanded="false" aria-label="视频预演" title="视频预演"><svg aria-hidden="true"><use href="#i-video"/></svg><span>视频预演</span></button>
+        <button type="button" class="stage-icon-button" data-stage-action="reset-view" title="重置视角" aria-label="重置视角"><svg><use href="#i-refresh"/></svg></button>
+        <button type="button" class="stage-exit" data-stage-action="close" title="退出导演台"><svg><use href="#i-close"/></svg><span>退出导演台</span></button>
+      </div>
+    </header>
+    <div class="stage-body">
+      <aside class="stage-tree" aria-label="场景对象">
+        <div class="stage-panel-head"><strong>场景</strong><span id="stage-scene-count"></span></div>
+        <div id="stage-tree-groups" class="stage-tree-groups"></div>
+        <div class="stage-tree-foot"><button type="button" data-stage-action="add-actor"><svg><use href="#i-actor"/></svg>角色</button><button type="button" data-stage-action="add-camera"><svg><use href="#i-camera"/></svg>机位</button></div>
+        <div class="stage-tree-prop"><select id="stage-prop-type" class="stage-select" aria-label="道具类型"></select><button type="button" data-stage-action="add-prop"><svg><use href="#i-prop"/></svg>道具</button></div>
+      </aside>
+      <div id="stage-viewport" class="stage-viewport">
+        <div class="stage-tools" role="group" aria-label="场景操作">
+          <button type="button" data-stage-tool="move" aria-pressed="true">移动</button>
+          <button type="button" data-stage-tool="rotate" aria-pressed="false">旋转</button>
+          <button type="button" data-stage-action="top-down" aria-pressed="false">俯视</button>
+          <span id="stage-tool-hint">拖空白转视角 · 右键平移 · 滚轮缩放</span>
+        </div>
+        <div id="stage-canvas" class="stage-canvas">
+          <div id="stage-guides" class="stage-guides" hidden aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+          <div id="stage-labels" class="stage-labels" aria-hidden="true"></div>
+        </div>
+      </div>
+      <aside class="stage-props" aria-label="对象属性">
+        <div class="stage-tabs" role="group" aria-label="对象编辑"><button type="button" class="active" data-stage-tab="props">属性</button><button type="button" data-stage-tab="pose" disabled>姿势</button></div>
+        <div id="stage-props-body" class="stage-props-body"></div>
+      </aside>
+    </div>
+    <details id="stage-motion" class="stage-motion">
+      <summary><svg aria-hidden="true"><use href="#i-video"/></svg><span>视频 · 运镜与走位</span><svg class="stage-motion-chevron" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+      <div class="stage-motion-content">
+        <div class="stage-motion-controls">
+          <div class="stage-motion-setup">
+            <div class="stage-motion-preset">
+              <label class="stage-field"><span>运镜</span><select id="stage-motion-preset"><option value="push" selected>推近</option><option value="pull">拉远</option><option value="left">左移</option><option value="right">右移</option><option value="rise">升高</option></select></label>
+              <label class="stage-field"><span>幅度</span><select id="stage-motion-strength"><option value="0.15">轻</option><option value="0.3" selected>中</option><option value="0.5">强</option></select></label>
+              <button type="button" class="dock-button" data-stage-action="motion-preset" aria-describedby="stage-motion-preset-help">套用并预演</button>
+            </div>
+            <div class="stage-field-row stage-motion-settings">
+              <label class="stage-field"><span>时长（秒）</span><input id="stage-motion-duration" type="number" min="1" max="30" step="0.1" value="5"></label>
+              <label class="stage-field"><span>运动节奏</span><select id="stage-motion-easing"><option value="smooth" selected>缓入缓出</option><option value="linear">匀速</option></select></label>
+            </div>
+          </div>
+          <p id="stage-motion-preset-help" class="stage-note">以当前视角为起点；确认后才替换运动起点与终点。</p>
+          <div class="stage-motion-preview">
+            <div class="stage-field"><span><label for="stage-motion-time">预演时间</label><output id="stage-motion-readout" for="stage-motion-time stage-motion-duration">0.00 / 5.00 s</output></span><input id="stage-motion-time" type="range" min="0" max="5" step="0.01" value="0" aria-label="预演时间"></div>
+            <div class="stage-motion-buttons"><button type="button" class="dock-button" data-stage-action="motion-play"><svg aria-hidden="true"><use href="#i-play"/></svg>播放</button><button type="button" class="stage-link" data-stage-action="motion-stop">退出预演</button></div>
+          </div>
+          <details class="stage-precise" id="stage-motion-manual">
+            <summary>手动摆起点 / 终点</summary>
+            <div class="stage-motion-manual-content">
+              <div class="stage-motion-keyframe" role="group" aria-label="起点记录">
+                <span>起点 · <span id="stage-motion-start-state">未记录</span></span>
+                <div class="stage-motion-buttons"><button type="button" class="dock-button" data-stage-action="motion-start">记录起点</button><button type="button" class="stage-link" data-stage-action="motion-load-start">载入起点</button></div>
+              </div>
+              <div class="stage-motion-keyframe" role="group" aria-label="终点记录">
+                <span>终点 · <span id="stage-motion-end-state">未记录</span></span>
+                <div class="stage-motion-buttons"><button type="button" class="dock-button" data-stage-action="motion-end">记录终点</button><button type="button" class="stage-link" data-stage-action="motion-load-end">载入终点</button></div>
+              </div>
+              <p class="stage-note">自定义人物姿势、位置或道具走位：摆好并记录起点，再调整并记录终点。</p>
+            </div>
+          </details>
+        </div>
+        <div class="stage-motion-routing">
+          <div class="stage-motion-output">
+            <label class="stage-field"><span>输出内容</span><select id="stage-motion-format"><option value="video" selected>参考视频＋首帧</option><option value="frames">首尾帧</option></select></label>
+            <div class="stage-motion-buttons"><button type="button" class="dock-button primary" data-stage-action="motion-export"><svg aria-hidden="true"><use href="#i-arrow"/></svg>输出到画布</button><button type="button" class="dock-button" data-stage-action="motion-cancel" hidden>取消导出</button></div>
+          </div>
+          <details class="stage-precise" id="stage-motion-binding">
+            <summary id="stage-motion-binding-summary">连接工作流（可选）</summary>
+            <div class="stage-motion-binding-fields">
+              <label class="stage-field stage-motion-target"><span>目标工作流</span><select id="stage-motion-target"><option value="" selected>不连接工作流</option></select></label>
+              <label class="stage-field"><span id="stage-motion-first-label">视频输入</span><select id="stage-motion-first-field"></select></label>
+              <label id="stage-motion-last-slot" class="stage-field" hidden><span>尾帧输入</span><select id="stage-motion-last-field"></select></label>
+            </div>
+          </details>
+          <div class="stage-motion-footer">
+            <p class="stage-note">无声参考预演，不是 AI 成片；长边 1280、24fps。工作流时长需另设并手动生成；普通参考图输入不等于尾帧，尾帧需工作流支持。</p>
+            <p id="stage-motion-status" class="stage-motion-status" role="status" aria-live="polite"></p>
+          </div>
+        </div>
+      </div>
+    </details>
+    <div id="stage-dock" class="stage-dock" aria-label="舞台控制台"></div>
+  </section>
+  <div id="stage-capture-modal" class="stage-capture-modal" hidden>
+    <div class="stage-capture-dialog" role="dialog" aria-modal="true" aria-labelledby="stage-capture-title">
+      <header><div><h2 id="stage-capture-title">截图到画布</h2><p>截图会成为一张独立图片卡，可直接连到工作流当参考图。</p></div><button type="button" class="stage-icon-button" data-stage-action="capture-close" aria-label="关闭截图窗口"><svg><use href="#i-close"/></svg></button></header>
+      <div class="stage-capture-grid">
+        <label class="stage-field"><span>输出画幅</span><select id="stage-capture-aspect" data-stage-aspect></select></label>
+        <label class="stage-field"><span>清晰度</span><select id="stage-capture-size"><option value="1280">1280</option><option value="1920" selected>1920</option><option value="2560">2560</option></select></label>
+      </div>
+      <label class="stage-field"><span>截图范围</span><select id="stage-capture-mode"><option value="current">当前视角</option><option value="all">全部机位</option></select></label>
+      <p class="stage-capture-dim"><span id="stage-capture-dim">1920 × 1080</span> PNG</p>
+      <label class="stage-field"><span>连接为参考图（可选）</span><select id="stage-capture-target"></select></label>
+      <p id="stage-capture-status" class="stage-capture-status" role="status" aria-live="polite"></p>
+      <div class="stage-capture-actions"><button type="button" data-stage-action="capture-close">取消</button><button type="button" class="primary" data-stage-action="capture-do">截图</button></div>
+    </div>
+  </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <input id="media-input" type="file" accept="image/*,video/*" multiple hidden><input id="workflow-input" type="file" accept=".json,application/json" hidden><input id="project-input" type="file" accept=".json,application/json" hidden>
 </body>

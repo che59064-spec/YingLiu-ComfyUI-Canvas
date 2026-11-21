@@ -26,6 +26,7 @@ ROOT = Path(__file__).resolve().parent
 LOCAL_HTTP = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 MAX_JSON = 32 * 1024 * 1024
 MAX_ASSET = 512 * 1024 * 1024
+MAX_STAGE_VIDEO = 64 * 1024 * 1024
 MEDIA_EXTENSIONS = {'.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
                     '.webp': 'image/webp', '.gif': 'image/gif', '.mp4': 'video/mp4',
                     '.webm': 'video/webm', '.mov': 'video/quicktime', '.mkv': 'video/x-matroska'}
@@ -165,7 +166,19 @@ class CanvasApp:
             path = self.canvas_path(canvas_id)
             if canvas_id not in self.canvas_index()['ids'] or not path.is_file():
                 raise HTTPProblem(404, '画布不存在')
-            return read_json(path, {})
+            document = read_json(path, {})
+            nested = document.get('project')
+            if isinstance(nested, dict) and isinstance(nested.get('cards'), list) and isinstance(nested.get('edges'), list):
+                # 旧版曾把画布包进 {project: ...} 外壳保存；外壳的 revision 才是最新保存计数，
+                # 不解包会让前端永远带着内层旧 revision 保存并收到 409。
+                healed = deepcopy(nested)
+                healed['id'] = canvas_id
+                healed['name'] = document.get('name') or nested.get('name') or '未命名画布'
+                healed['revision'] = document.get('revision', nested.get('revision', 0))
+                healed['savedAt'] = document.get('savedAt') or nested.get('savedAt')
+                atomic_json(path, healed)
+                document = healed
+            return document
 
     @staticmethod
     def canvas_name(name):
@@ -460,15 +473,47 @@ class CanvasApp:
         if not valid:
             raise ValueError('素材内容与文件类型不符，请选择有效图片或视频')
         asset_id = uuid4().hex + suffix
-        (self.assets / asset_id).write_bytes(data)
+        path = self.assets / asset_id
         entry = {'id': asset_id, 'url': '/assets/' + asset_id, 'name': name,
                  'type': media_type.split('/')[0], 'mime': media_type, 'size': len(data),
                  'source': 'upload', 'createdAt': datetime.now(timezone.utc).isoformat(), **attributes}
-        with self.lock:
-            metadata = self.asset_metadata()
-            metadata[asset_id] = entry
-            atomic_json(self.data / 'assets.json', metadata)
+        try:
+            path.write_bytes(data)
+            with self.lock:
+                metadata = self.asset_metadata()
+                metadata[asset_id] = entry
+                atomic_json(self.data / 'assets.json', metadata)
+        except Exception:
+            path.unlink(missing_ok=True)
+            raise
         return entry
+
+    def store_stage_video(self, name, data, duration):
+        from video_edit import normalize_recording, recording_duration
+        duration = recording_duration(duration)
+        if len(data) > MAX_STAGE_VIDEO:
+            raise HTTPProblem(413, '预演录制最多 64 MiB，请缩短录制后重试。')
+        name = Path(urllib.parse.unquote(name).replace('\\', '/')).name
+        suffix = Path(name).suffix.lower()
+        valid = ((suffix == '.webm' and data.startswith(b'\x1aE\xdf\xa3') and b'\x42\x82\x84webm' in data[:64])
+                 or (suffix == '.mp4' and data[4:8] == b'ftyp' and 16 <= int.from_bytes(data[:4], 'big') <= len(data)
+                     and data[8:12] in (b'isom', b'iso2', b'iso3', b'iso4', b'iso5', b'iso6', b'iso7', b'iso8', b'iso9',
+                                        b'mp41', b'mp42', b'avc1', b'dash', b'cmfc', b'cmfs', b'M4V ')))
+        if not valid:
+            raise ValueError('预演录制仅支持有效的 WebM 或 MP4 文件。')
+        # Acquire atomically without queuing behind a potentially long join/segment encode.
+        if not self.video_lock.acquire(blocking=False):
+            raise HTTPProblem(409, '本机正在处理视频，请等待完成后重试保存预演。')
+        try:
+            with tempfile.TemporaryDirectory(prefix='canvas-stage-') as folder:
+                source, output = Path(folder) / ('recording' + suffix), Path(folder) / 'normalized.mp4'
+                source.write_bytes(data)
+                info = normalize_recording(source, output, duration)
+                if output.stat().st_size > MAX_STAGE_VIDEO:
+                    raise ValueError('标准化预演超过 64 MiB，请缩短录制后重试。')
+                return self.store_asset(Path(name).stem + '.mp4', 'video/mp4', output.read_bytes(), **info)
+        finally:
+            self.video_lock.release()
 
     @staticmethod
     def media_identity(url):
@@ -1054,6 +1099,9 @@ class Handler(BaseHTTPRequestHandler):
             if method == 'POST' and path == '/api/import-workflow':
                 body = self.json_body()
                 return self.json_response(self.app.library.import_document(body, urllib.parse.unquote(self.headers.get('X-Workflow-Name', '')) or (body.get('name', '导入工作流') if isinstance(body, dict) else '导入工作流')), 201)
+            if method == 'POST' and path == '/api/stage/video':
+                return self.json_response(self.app.store_stage_video(self.headers.get('X-Filename', ''),
+                                          self.body(MAX_STAGE_VIDEO), self.headers.get('X-Duration')), 201)
             if method == 'POST' and path == '/api/assets':
                 return self.json_response(self.app.store_asset(self.headers.get('X-Filename', ''), self.headers.get_content_type(), self.body(MAX_ASSET)), 201)
             if method == 'GET' and path == '/api/assets':

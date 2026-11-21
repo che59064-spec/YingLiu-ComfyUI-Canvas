@@ -10,12 +10,14 @@ import tempfile
 import threading
 import time
 import unittest
+from unittest.mock import patch
 import urllib.error
+import urllib.parse
 import urllib.request
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from server import CanvasApp, make_server
-from video_edit import clip_range, probe, run, tool
+from video_edit import clip_range, normalize_recording, probe, run, tool
 
 
 class MediaCheck(unittest.TestCase):
@@ -134,6 +136,167 @@ class MediaCheck(unittest.TestCase):
             server.shutdown()
             server.server_close()
             thread.join()
+
+
+class StageRecordingCheck(unittest.TestCase):
+    def setUp(self):
+        try:
+            tool('ffmpeg')
+            tool('ffprobe')
+        except ValueError:
+            self.skipTest('FFmpeg is not installed')
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        self.app = CanvasApp(self.root, self.root / 'source')
+
+    def recording(self, name='recording.webm', *, live=False, size='160x90', seconds=1, audio=False, filters=None):
+        path = self.root / name
+        arguments = [tool('ffmpeg'), '-v', 'error', '-nostdin', '-y', '-f', 'lavfi', '-i',
+                     f'color=red:s={size}:r=24:d={seconds}']
+        if audio:
+            arguments += ['-f', 'lavfi', '-i', f'sine=frequency=440:duration={seconds}']
+        if filters:
+            arguments += ['-vf', filters]
+        arguments += ['-c:v', 'libvpx' if path.suffix == '.webm' else 'libx264', '-threads', '2',
+                      '-metadata', 'title=private recording metadata']
+        if audio:
+            arguments += ['-c:a', 'libopus' if path.suffix == '.webm' else 'aac', '-shortest']
+        if live:
+            arguments += ['-live', '1']
+        run(arguments + [str(path)], timeout=30)
+        return path
+
+    def test_recordings_with_and_without_duration_become_reusable_mp4(self):
+        for name, live in (('normal.webm', False), ('live.webm', True), ('normal.mp4', False)):
+            with self.subTest(name=name):
+                source = self.recording(name, live=live, audio=not live)
+                data = source.read_bytes()
+                if live:
+                    with self.assertRaisesRegex(ValueError, '时长'):
+                        probe(source)
+                else:
+                    self.assertGreater(probe(source)['duration'], 0)
+                entry = self.app.store_stage_video(name, data, '1')
+                output, stored = self.app.asset(entry['id'])
+                info = probe(output)
+                self.assertEqual(stored, entry)
+                self.assertEqual(entry['name'], Path(name).stem + '.mp4')
+                self.assertEqual(entry['type'], 'video')
+                self.assertEqual(entry['mime'], 'video/mp4')
+                for key, value in info.items():
+                    self.assertEqual(entry[key], value)
+                self.assertAlmostEqual(info['duration'], 1, delta=2 / 24)
+                self.assertEqual((info['width'], info['height'], info['fps'], info['audio']), (160, 90, '24', False))
+                actual = json.loads(run([tool('ffprobe'), '-v', 'error', '-count_frames', '-show_streams',
+                                         '-show_format', '-of', 'json', str(output)], timeout=30))
+                self.assertEqual(len(actual['streams']), 1)
+                video = actual['streams'][0]
+                self.assertEqual((video['codec_name'], video['pix_fmt'], video['nb_read_frames']), ('h264', 'yuv420p', '24'))
+                self.assertNotIn('title', actual['format'].get('tags', {}))
+                binary = output.read_bytes()
+                self.assertLess(binary.index(b'moov'), binary.index(b'mdat'))
+                self.assertEqual(self.app.reference_asset({'assetId': entry['id']}), entry)
+                self.assertEqual(source.read_bytes(), data)
+        self.assertEqual(len(self.app.asset_metadata()), 3)
+        self.assertEqual(len(list(self.app.assets.glob('*.mp4'))), 3)
+        self.assertFalse(list(self.app.assets.glob('*.webm')))
+        self.assertFalse(self.app.jobs)
+
+    def test_http_live_recording_can_prepare_motion_reference_without_engine(self):
+        source = self.recording(live=True, filters='setpts=PTS+5/TB')
+        server = make_server(port=0, root=self.root, source=self.root / 'source')
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        base = 'http://127.0.0.1:' + str(server.server_port)
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        try:
+            request = urllib.request.Request(base + '/api/stage/video', method='POST', data=source.read_bytes(),
+                      headers={'Origin': base, 'X-Filename': urllib.parse.quote('导演预演.webm'), 'X-Duration': '1'})
+            with opener.open(request, timeout=30) as response:
+                self.assertEqual(response.status, 201)
+                entry = json.load(response)
+            self.assertEqual(entry['name'], '导演预演.mp4')
+            self.assertAlmostEqual(probe(server.app.assets / entry['id'])['duration'], 1, delta=2 / 24)
+            document = {'timing': {'class_type': 'H3SegmentTiming', 'inputs': {'start_seconds': .25, 'end_seconds': .75}},
+                        'loader': {'class_type': 'VHS_LoadVideoFFmpeg', 'inputs': {'video': 'old.mp4',
+                                   'start_time': ['timing', 0], 'frame_load_cap': ['timing', 1]}}}
+            with patch.object(server.app, 'upload_comfy_media', side_effect=lambda name, mime, data: name) as upload:
+                prepared = server.app.prepare_workflow({'workflow': document, 'references': [{'assetId': entry['id']}]})
+            upload.assert_called_once()
+            name, mime, data = upload.call_args.args
+            self.assertEqual(mime, 'video/mp4')
+            self.assertTrue(data)
+            self.assertEqual(prepared['loader']['inputs']['video'], name)
+            self.assertEqual(prepared['loader']['inputs']['start_time'], 0)
+            segments = list((server.app.data / 'segments').glob('*.mp4'))
+            self.assertEqual(len(segments), 1)
+            self.assertAlmostEqual(probe(segments[0])['duration'], .5, delta=1 / 24)
+            self.assertFalse(server.app.jobs)
+            self.assertIsNone(server.app.engine_thread)
+            self.assertEqual(len(server.app.asset_metadata()), 1)
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join()
+
+    def test_normalization_scales_and_rounds_dimensions_and_duration(self):
+        for size, filters, expected in (('2560x1440', None, (1280, 720)),
+                                        ('162x94', 'format=yuv444p,crop=161:91', (160, 90))):
+            with self.subTest(size=size):
+                source = self.recording('size.mp4', size=size, seconds=1.5, filters=filters)
+                entry = self.app.store_stage_video('预演.mp4', source.read_bytes(), 1.27)
+                self.assertEqual((entry['width'], entry['height']), expected)
+                self.assertAlmostEqual(entry['duration'], round(1.27 * 24) / 24, delta=.001)
+                self.assertEqual(probe(self.app.assets / entry['id'])['fps'], '24')
+
+    def test_short_damaged_large_gapped_and_nonvideo_recordings_never_enter_shelf(self):
+        short = self.recording('short.webm', live=True, seconds=.25)
+        large = self.recording('large.mp4', size='2562x16')
+        gapped = self.recording('gapped.webm', live=True, seconds=.125, filters='setpts=PTS*24')
+        broken = self.root / 'broken.webm'
+        broken.write_bytes(short.read_bytes()[:80])
+        audio = self.root / 'audio.webm'
+        run([tool('ffmpeg'), '-v', 'error', '-nostdin', '-y', '-f', 'lavfi', '-i', 'sine=duration=1',
+             '-c:a', 'libopus', str(audio)], timeout=30)
+        multi = self.root / 'multi.mp4'
+        run([tool('ffmpeg'), '-v', 'error', '-nostdin', '-y', '-i', str(large), '-map', '0:v', '-map', '0:v',
+             '-c', 'copy', str(multi)], timeout=30)
+        for source in (short, large, gapped, broken, audio, multi):
+            with self.subTest(source=source.name):
+                data = source.read_bytes()
+                with self.assertRaises(ValueError):
+                    self.app.store_stage_video(source.name, data, 1)
+                self.assertFalse(self.app.asset_metadata())
+                self.assertFalse(list(self.app.assets.iterdir()))
+                self.assertFalse(self.app.video_lock.locked())
+                self.assertEqual(source.read_bytes(), data)
+        self.assertFalse(self.app.jobs)
+
+    def test_normalizer_bounds_commands_and_verifies_output_before_storage(self):
+        source = self.recording(live=True)
+        calls = []
+        def checked_run(arguments, timeout=1800):
+            calls.append((arguments, timeout))
+            self.assertIsInstance(arguments, list)
+            self.assertLessEqual(timeout, 120)
+            self.assertEqual(arguments[arguments.index('-protocol_whitelist') + 1], 'file,pipe')
+            return run(arguments, timeout=timeout)
+        with patch('video_edit.run', side_effect=checked_run):
+            result = normalize_recording(source, self.root / 'checked.mp4', 1)
+        self.assertEqual(result['fps'], '24')
+        encode = next(arguments for arguments, timeout in calls if '-c:v' in arguments)
+        self.assertEqual(encode[encode.index('-frames:v') + 1], '24')
+        self.assertEqual(encode[encode.index('-threads') + 1], '2')
+        self.assertNotIn('-loop', encode)
+        self.assertNotIn('tpad', ' '.join(encode))
+        for bad_info in ({**result, 'duration': .5}, {**result, 'duration': 30.1},
+                         {**result, 'fps': '30'}, {**result, 'width': 1282}, {**result, 'audio': True}):
+            with self.subTest(info=bad_info), patch('video_edit.probe', return_value=bad_info):
+                with self.assertRaisesRegex(ValueError, '标准化结果'):
+                    self.app.store_stage_video(source.name, source.read_bytes(), 1)
+        self.assertFalse(self.app.asset_metadata())
+        self.assertFalse(list(self.app.assets.iterdir()))
 
 
 if __name__ == '__main__':

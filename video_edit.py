@@ -60,6 +60,55 @@ def probe(path):
             'audio': any(stream.get('codec_type') == 'audio' for stream in info.get('streams', []))}
 
 
+def recording_duration(value):
+    try:
+        duration = float(value)
+    except (TypeError, ValueError, OverflowError):
+        raise ValueError('预演时长必须是 1 到 30 秒的有限数字。') from None
+    if isinstance(value, bool) or not math.isfinite(duration) or not 1 <= duration <= 30:
+        raise ValueError('预演时长必须是 1 到 30 秒的有限数字。')
+    return duration
+
+
+def normalize_recording(source, destination, duration):
+    """Decode browser recordings without trusting their optional container duration."""
+    duration = recording_duration(duration)
+    ffprobe = [tool('ffprobe'), '-v', 'error', '-protocol_whitelist', 'file,pipe', '-threads', '2']
+    info = json.loads(run(ffprobe + ['-show_streams', '-of', 'json', str(source)], timeout=30))
+    videos = [stream for stream in info.get('streams', []) if stream.get('codec_type') == 'video']
+    if len(videos) != 1 or videos[0].get('disposition', {}).get('attached_pic'):
+        raise ValueError('预演录制必须包含单个有效视频流。')
+    if not all(2 <= int(videos[0].get(key) or 0) <= 2560 for key in ('width', 'height')):
+        raise ValueError('预演录制尺寸无效或超过 2560 像素。')
+    frames = json.loads(run(ffprobe + ['-select_streams', 'v:0', '-read_intervals', f'%+{duration + .1}',
+                            '-show_frames', '-show_entries', 'frame=width,height,best_effort_timestamp_time',
+                            '-of', 'json', str(source)], timeout=30)).get('frames', [])
+    try:
+        times = [float(frame['best_effort_timestamp_time']) for frame in frames]
+        valid_sizes = all(2 <= int(frame[key]) <= 2560 for frame in frames for key in ('width', 'height'))
+    except (KeyError, TypeError, ValueError, OverflowError):
+        raise ValueError('预演录制没有可读取的有效画面。') from None
+    # Do not let fps conversion stretch a damaged tail or a long timestamp gap into still frames.
+    if (len(times) < 2 or not valid_sizes or not all(math.isfinite(t) for t in times)
+            or times[-1] - times[0] + 1 / 24 < duration - 2 / 24 - .001
+            or any(not 0 < b - a <= .5 for a, b in zip(times, times[1:]))):
+        raise ValueError('预演录制画面不足或中断，请重新录制。')
+    frame_count = math.floor(duration * 24 + .5)
+    video = ("setpts=PTS-STARTPTS,scale=w='min(1280,iw)':h='min(1280,ih)':"
+             'force_original_aspect_ratio=decrease:force_divisible_by=2,setsar=1,fps=24:eof_action=pass')
+    run([tool('ffmpeg'), '-v', 'error', '-nostdin', '-y', '-xerror', '-protocol_whitelist', 'file,pipe',
+         '-threads', '2', '-i', str(source), '-map', '0:v:0', '-an', '-sn', '-dn', '-vf', video,
+         '-t', str(frame_count / 24), '-frames:v', str(frame_count), '-c:v', 'libx264',
+         '-preset', 'veryfast', '-crf', '18', '-pix_fmt', 'yuv420p', '-threads', '2',
+         '-map_metadata', '-1', '-map_chapters', '-1', '-movflags', '+faststart', '-f', 'mp4',
+         str(destination)], timeout=120)
+    result = probe(destination)
+    if (abs(result['duration'] - duration) > 2 / 24 + .001 or result['duration'] > 30.001
+            or max(result['width'], result['height']) > 1280 or result['fps'] != '24' or result['audio']):
+        raise ValueError('预演视频标准化结果无效或时长不符，请重新录制。')
+    return result
+
+
 def clip_range(clip, duration):
     try:
         start = float(clip.get('start') or 0)

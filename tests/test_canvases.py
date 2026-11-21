@@ -59,6 +59,23 @@ class CanvasCheck(unittest.TestCase):
         self.assertEqual(compatibility_save['id'], first['id'])
         self.assertEqual(restarted.project()['id'], second['id'])
 
+    def test_nested_legacy_wrapper_is_unwrapped_and_healed_on_read(self):
+        first = self.app.project()
+        first.update(cards=[{'id': 'card'}], edges=[])
+        saved = self.app.save_canvas(first['id'], first)
+        atomic_json(self.app.canvas_path(first['id']),
+                    {'project': {**saved, 'revision': saved['revision'] - 1},
+                     'id': first['id'], 'name': saved['name'],
+                     'revision': saved['revision'] + 2, 'savedAt': '2026-11-02T06:05:25+00:00'})
+        healed = self.app.canvas(first['id'])
+        self.assertEqual(healed['revision'], saved['revision'] + 2)
+        self.assertEqual(healed['id'], first['id'])
+        self.assertEqual(healed['cards'], [{'id': 'card'}])
+        self.assertNotIn('project', healed)
+        self.assertEqual(json.loads(self.app.canvas_path(first['id']).read_text(encoding='utf-8')), healed)
+        again = self.app.save_canvas(first['id'], healed)
+        self.assertEqual(again['revision'], saved['revision'] + 3)
+
     def test_invalid_ids_names_and_document_identity_cannot_overwrite(self):
         first = self.app.project()
         second = self.app.create_canvas({})

@@ -8,14 +8,14 @@ import shutil
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = '1.7.5'
+VERSION = '1.9.1'
 CORE = (
-    'server.py', 'run_app.py', 'engine.py', 'workflows.py', 'prompt_optimizer.py',
+    'server.py', 'run_app.py', 'browser_app.py', 'engine.py', 'workflows.py', 'prompt_optimizer.py',
     'ai_provider.py', 'prompt_media.py', 'prompt_rules.json', 'video_edit.py',
     'segment_reference.py', 'reference_acceleration.py', 'continuity.py', 'Launcher.cs', 'CanvasWindow.cs',
     'CanvasBrand.cs', 'StartupWindow.cs', 'AssemblyInfo.cs', 'app.manifest', 'app.ico',
     'build.ps1', 'setup.ps1', 'dependencies.json', 'config.example.json', 'requirements.txt',
-    'README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', '.gitignore', '启动映流.cmd',
+    'README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', '.gitignore', '启动映流.cmd', '启动浏览器版.cmd',
     'qa/BuildBrandAssets.cs',
 )
 TEXT_SUFFIXES = {'.py', '.cs', '.js', '.cjs', '.css', '.html', '.md', '.json', '.ps1', '.txt', '.cmd'}
@@ -27,6 +27,7 @@ def source_files(root=ROOT):
     files = [root / name for name in CORE if (root / name).is_file()]
     for directory, suffixes in (('web', {'.js', '.cjs', '.css', '.html'}),
                                  ('web/brand', {'.svg', '.png', '.ico'}),
+                                 ('web/vendor', {'.js', '.md', '.txt'}),
                                  ('scripts', {'.py', '.ps1'}),
                                  ('tests', {'.py'}),
                                  ('docs', {'.md'})):
